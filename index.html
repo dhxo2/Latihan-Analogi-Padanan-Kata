@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Latihan Analogi & Padanan Kata</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        
+        .animate-fade { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .custom-scrollbar::-webkit-scrollbar { width: 5px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        
+        .sidebar-transition { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+    </style>
+</head>
+<body class="bg-[#F8FAFC] text-slate-900">
+
+    <div id="app" class="min-h-screen flex flex-col">
+        <!-- TAMPILAN 1: MENU UTAMA -->
+        <div id="view-start" class="flex-grow flex items-center justify-center p-4">
+            <div class="max-w-xl w-full bg-white rounded-[2rem] shadow-2xl p-10 border border-slate-100">
+                <div class="text-center mb-10">
+                    <h1 class="text-3xl font-black text-slate-800 tracking-tight">Latihan Analogi & Padanan Kata</h1>
+                    <div class="h-1 w-20 bg-slate-400 mx-auto mt-4 rounded-full"></div>
+                </div>
+
+                <div class="bg-slate-50 p-6 rounded-2xl mb-8 border border-slate-100">
+                    <h2 class="font-bold text-slate-700 mb-4 flex items-center gap-2 text-xs uppercase tracking-widest">
+                        Instruksi Pengerjaan
+                    </h2>
+                    <ul class="text-sm text-slate-600 space-y-3">
+                        <li class="flex items-start gap-2"><span>.</span> 50 Soal Analogi & Padanan Kata pilihan ganda.</li>
+                        <li class="flex items-start gap-2"><span>.</span> Pilih mode waktu: Mundur 50 Menit atau Maju (Stopwatch).</li>
+                        <li class="flex items-start gap-2"><span>.</span> Jawaban tidak akan langsung berpindah (klik Lanjutkan).</li>
+                        <li class="flex items-start gap-2"><span>.</span> Gunakan Sidebar untuk navigasi cepat antar nomor.</li>
+                    </ul>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Mode Waktu</label>
+                        <select id="timer-mode" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-slate-400 outline-none font-bold text-slate-700 cursor-pointer appearance-none transition-all">
+                            <option value="countdown">Mundur (50 Menit)</option>
+                            <option value="stopwatch">Maju (Tanpa Batas)</option>
+                        </select>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Urutan Soal</label>
+                        <select id="shuffle-mode" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-slate-400 outline-none font-bold text-slate-700 cursor-pointer appearance-none transition-all">
+                            <option value="false">Sesuai Urutan</option>
+                            <option value="true">Acak Soal</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button onclick="startQuiz()" class="w-full bg-slate-800 hover:bg-black text-white font-bold py-5 rounded-2xl shadow-xl shadow-slate-200 transition-all transform active:scale-95">
+                    MULAI LATIHAN
+                </button>
+            </div>
+        </div>
+
+        <!-- TAMPILAN 2: INTERFACE KUIS -->
+        <div id="view-quiz" class="hidden flex-grow flex flex-col md:flex-row h-screen overflow-hidden">
+            <!-- Sidebar -->
+            <aside id="sidebar" class="fixed md:relative inset-y-0 left-0 w-72 bg-white border-r border-slate-100 sidebar-transition -translate-x-full md:translate-x-0 z-50 flex flex-col shadow-2xl md:shadow-none">
+                <div class="p-8 border-b border-slate-50 flex justify-between items-center bg-white">
+                    <h3 class="font-bold text-slate-800 uppercase text-[10px] tracking-widest">Navigasi Soal</h3>
+                    <button onclick="toggleSidebar()" class="md:hidden text-slate-400 text-3xl font-light">&times;</button>
+                </div>
+                <div class="p-6 grid grid-cols-5 gap-2 overflow-y-auto flex-grow custom-scrollbar bg-white" id="nav-grid"></div>
+                <div class="p-6 border-t border-slate-50 bg-slate-50/50">
+                    <button onclick="openConfirmModal()" class="w-full py-4 bg-rose-500 hover:bg-rose-600 text-white rounded-2xl font-bold transition-all shadow-lg shadow-rose-100 text-xs uppercase tracking-widest">
+                        Selesaikan Kuis
+                    </button>
+                </div>
+            </aside>
+
+            <!-- Main Panel -->
+            <main class="flex-grow flex flex-col overflow-hidden bg-[#F1F5F9]">
+                <header class="bg-white border-b border-slate-100 px-8 py-5 flex justify-between items-center shrink-0">
+                    <div class="flex items-center gap-4">
+                        <button onclick="toggleSidebar()" class="p-2.5 hover:bg-slate-50 rounded-xl text-slate-500 transition-colors">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                        </button>
+                        <h2 class="text-lg font-bold text-slate-800" id="header-question-num">Soal 1 / 50</h2>
+                    </div>
+                    <div class="bg-slate-900 text-white px-6 py-2.5 rounded-2xl font-mono font-bold text-lg shadow-xl shadow-slate-200">
+                        <span id="timer-display">50:00</span>
+                    </div>
+                </header>
+
+                <div class="flex-grow overflow-y-auto p-4 md:p-12 flex justify-center items-start">
+                    <div class="max-w-3xl w-full animate-fade">
+                        <div class="bg-white rounded-[2.5rem] p-8 md:p-12 shadow-sm border border-slate-100">
+                            <div class="text-[10px] font-bold text-slate-300 uppercase mb-6 tracking-widest">Pertanyaan Analogi</div>
+                            <p id="question-text" class="text-2xl text-slate-800 font-extrabold leading-relaxed mb-12 uppercase tracking-wide">...</p>
+                            <div id="options-container" class="space-y-3"></div>
+                        </div>
+
+                        <div class="mt-10 flex justify-between items-center px-4">
+                            <button id="btn-prev" onclick="move(-1)" class="flex items-center gap-2 font-bold text-slate-400 hover:text-slate-800 disabled:opacity-20 transition-all">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                                Sebelumnya
+                            </button>
+                            <button id="btn-next" onclick="move(1)" class="bg-slate-800 hover:bg-black text-white px-12 py-4 rounded-2xl font-bold shadow-2xl shadow-slate-300 transition-all active:scale-95">
+                                Lanjutkan &rarr;
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <!-- TAMPILAN 3: HASIL & PEMBAHASAN -->
+        <div id="view-result" class="hidden flex-grow overflow-y-auto bg-slate-50 p-6 md:p-16">
+            <div class="max-w-4xl mx-auto space-y-12">
+                <div class="bg-white rounded-[3rem] shadow-2xl p-12 text-center border border-slate-100 relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-full h-2.5 bg-slate-800"></div>
+                    <h2 class="text-4xl font-black text-slate-800 mb-2 mt-4 tracking-tight">Hasil Latihan</h2>
+                    <p class="text-slate-400 font-medium text-sm tracking-widest uppercase mb-12">Statistik Pengerjaan</p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+                        <div class="p-10 bg-slate-50 rounded-[2rem] border border-slate-100">
+                            <div id="res-percent" class="text-5xl font-black text-slate-800">0%</div>
+                            <div class="text-[10px] font-bold text-slate-400 uppercase mt-3 tracking-widest">Selesai</div>
+                        </div>
+                        <div class="p-10 bg-slate-50 rounded-[2rem] border border-slate-100">
+                            <div id="res-score" class="text-5xl font-black text-emerald-600">0/50</div>
+                            <div class="text-[10px] font-bold text-slate-400 uppercase mt-3 tracking-widest">Benar</div>
+                        </div>
+                        <div class="p-10 bg-slate-50 rounded-[2rem] border border-slate-100">
+                            <div id="res-time" class="text-5xl font-black text-blue-600">00:00</div>
+                            <div class="text-[10px] font-bold text-slate-400 uppercase mt-3 tracking-widest">Waktu</div>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-wrap justify-center gap-4">
+                        <button onclick="toggleDiscussion()" class="px-10 py-5 bg-slate-800 text-white rounded-2xl font-bold hover:bg-black transition-all shadow-xl shadow-slate-200 flex items-center gap-3">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+                            Lihat Pembahasan
+                        </button>
+                        <button onclick="downloadPDF()" class="px-10 py-5 bg-slate-100 text-slate-700 rounded-2xl font-bold hover:bg-slate-200 transition-all flex items-center gap-3 border border-slate-200">
+                            Unduh PDF
+                        </button>
+                        <button onclick="location.reload()" class="px-10 py-5 border-2 border-slate-100 text-slate-400 rounded-2xl font-bold hover:bg-slate-50 transition-all">
+                            Coba Lagi
+                        </button>
+                    </div>
+                </div>
+
+                <div id="discussion-area" class="hidden space-y-6 animate-fade">
+                    <h3 class="text-2xl font-black text-slate-800 pl-6 border-l-4 border-slate-800">Detail Analisis Jawaban</h3>
+                    <div id="discussion-list" class="space-y-6"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL KONFIRMASI -->
+        <div id="modal-confirm" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-6">
+            <div class="bg-white rounded-[2.5rem] p-12 max-w-sm w-full shadow-2xl">
+                <div class="text-center mb-8">
+                    <div class="w-20 h-20 bg-slate-50 text-slate-400 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
+                    <h3 class="text-2xl font-black text-slate-800 mb-2">Sudah Selesai?</h3>
+                    <p class="text-slate-400 text-sm">Pastikan Anda sudah meninjau kembali jawaban yang sulit.</p>
+                </div>
+                <div class="flex gap-4">
+                    <button onclick="closeConfirmModal()" class="flex-1 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold text-slate-400 hover:bg-slate-100 transition-all">Batal</button>
+                    <button onclick="finishQuiz()" class="flex-1 py-4 bg-slate-800 text-white rounded-2xl font-bold shadow-xl shadow-slate-200 transition-all">Ya, Selesai</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DATA 50 SOAL ANALOGI
+        const RAW_QUESTIONS = [
+            { q: "GURU : SEKOLAH", opt: ["Penebang : Hutan", "Petani : Ladang", "Buruh : Pabrik", "Dokter : Pasien", "Polisi : Jalan"], ans: "b", expl: "Profesi dan tempat bekerjanya secara spesifik (Petani di Ladang)." },
+            { q: "KAKI : SEPATU", opt: ["Topi : Kepala", "Telinga : Anting", "Cincin : Jari", "Tangan : Sarung Tangan", "Leher : Kalung"], ans: "d", expl: "Anggota tubuh dan pelindung/alasnya." },
+            { q: "MATA : MELIHAT", opt: ["Kaki : Berjalan", "Telinga : Mendengar", "Mulut : Makan", "Hidung : Mencium", "Tangan : Memegang"], ans: "b", expl: "Indra dan fungsi utamanya." },
+            { q: "HUJAN : BANJIR", opt: ["Api : Kebakaran", "Air : Haus", "Panas : Matahari", "Angin : Dingin", "Gempa : Tsunami"], ans: "a", expl: "Hubungan sebab-akibat fenomena alam." },
+            { q: "KAYU : MEJA", opt: ["Besi : Jembatan", "Tanah : Rumah", "Benang : Kain", "Emas : Perhiasan", "Tepung : Roti"], ans: "e", expl: "Bahan baku dan produk olahannya." },
+            { q: "KOSONG : HAMPA", opt: ["Cair : Encer", "Siang : Malam", "Penuh : Sesak", "Ribut : Sorak", "Cepat : Lambat"], ans: "c", expl: "Hubungan sinonim yang menunjukkan intensitas." },
+            { q: "MOBIL : BENSIN", opt: ["Lampu : Listrik", "Pelari : Sepatu", "Pesawat : Avtur", "Sapi : Rumput", "Manusia : Makanan"], ans: "c", expl: "Kendaraan dan bahan bakar spesifiknya." },
+            { q: "INDONESIA : JAKARTA", opt: ["Malaysia : Kuala Lumpur", "Belanda : Amsterdam", "Inggris : London", "Filipina : Manila", "Thailand : Bangkok"], ans: "a", expl: "Negara tetangga dan ibu kotanya." },
+            { q: "SARUNG TANGAN : TINJU", opt: ["Raket : Tenis", "Sepatu : Lari", "Mikroskop : Bakteri", "Helm : Motor", "Gelas : Minum"], ans: "a", expl: "Alat khusus untuk olahraga tertentu." },
+            { q: "HAUS : MINUM", opt: ["Lapar : Makan", "Ngantuk : Tidur", "Capek : Istirahat", "Marah : Teriak", "Sakit : Obat"], ans: "a", expl: "Kebutuhan fisiologis dan solusinya." },
+            { q: "SAPI : RUMPUT", opt: ["Harimau : Daging", "Singa : Hutan", "Kera : Pisang", "Ulat : Daun", "Ayam : Cacing"], ans: "a", expl: "Hewan dan jenis makanan utamanya." },
+            { q: "MATAHARI : TERANG", opt: ["Es : Dingin", "Api : Panas", "Air : Basah", "Lampu : Sinar", "Malam : Gelap"], ans: "b", expl: "Benda dan sifat/dampak yang dihasilkan." },
+            { q: "PENULIS : BUKU", opt: ["Pelukis : Kanvas", "Penjahit : Baju", "Guru : Murid", "Komposer : Lagu", "Sutradara : Film"], ans: "d", expl: "Pencipta dan karya seni intelektual." },
+            { q: "GIGI : KUNYAH", opt: ["Mata : Kedip", "Tangan : Tulis", "Lidah : Kecap", "Hidung : Hirup", "Telinga : Dengar"], ans: "c", expl: "Organ tubuh dan fungsi sensorik/mekanik spesifik." },
+            { q: "SENAPAN : BERBURU", opt: ["Parang : Mengasah", "Cangkul : Bertani", "Jarum : Menjahit", "Pancing : Ikan", "Gunting : Memotong"], ans: "b", expl: "Alat dan aktivitas profesi." },
+            { q: "KILAT : GUNTUR", opt: ["Api : Asap", "Siang : Malam", "Bel : Bunyi", "Lampu : Cahaya", "Matahari : Bulan"], ans: "a", expl: "Dua hal yang muncul beriringan dalam urutan waktu." },
+            { q: "DOKTER : PASIEN", opt: ["Guru : Murid", "Pengacara : Klien", "Arsitek : Gedung", "Polisi : Pencuri", "Montir : Mobil"], ans: "b", expl: "Pemberi jasa profesional dan pengguna jasanya." },
+            { q: "BULAN : BUMI", opt: ["Bumi : Matahari", "Planet : Orbit", "Bintang : Langit", "Satelit : Antena", "Komet : Ekor"], ans: "a", expl: "Benda langit dan pusat orbitnya." },
+            { q: "TELESKOP : ASTRONOM", opt: ["Mikroskop : Biolog", "Stetoskop : Dokter", "Kompas : Nahkoda", "Kamera : Fotografer", "Palu : Hakim"], ans: "b", expl: "Alat diagnostik/pengamat utama profesi." },
+            { q: "ES : AIR", opt: ["Air : Uap", "Kayu : Arang", "Besi : Karat", "Beras : Nasi", "Kertas : Abu"], ans: "a", expl: "Perubahan wujud benda." },
+            { q: "SINGA : RUSA", opt: ["Kucing : Tikus", "Elang : Kelinci", "Serigala : Domba", "Ular : Katak", "Burung : Cacing"], ans: "b", expl: "Predator puncak dan mangsanya." },
+            { q: "PUISI : BAIT", opt: ["Rumah : Ruang", "Buku : Halaman", "Lagu : Nada", "Drama : Babak", "Cerpen : Paragraf"], ans: "d", expl: "Karya sastra dan pembagian strukturnya." },
+            { q: "HIDUNG : BAU", opt: ["Telinga : Suara", "Lidah : Rasa", "Mata : Cahaya", "Kulit : Sentuhan", "Otak : Pikiran"], ans: "b", expl: "Alat indra dan objek yang ditangkap." },
+            { q: "PESAWAT : PILOT", opt: ["Kapal : Nahkoda", "Kereta : Masinis", "Motor : Pengendara", "Sepeda : Pengayuh", "Bus : Sopir"], ans: "a", expl: "Kendaraan besar dan sebutan pengemudinya." },
+            { q: "SARANG : BURUNG", opt: ["Kandang : Sapi", "Gua : Kelelawar", "Kolam : Ikan", "Hutan : Harimau", "Akuarium : Kura-kura"], ans: "b", expl: "Tempat tinggal alami hewan." },
+            { q: "MERAH : BERHENTI", opt: ["Hijau : Jalan", "Kuning : Hati-hati", "Biru : Dingin", "Putih : Suci", "Hitam : Duka"], ans: "a", expl: "Warna lampu lalu lintas dan perintahnya." },
+            { q: "KOMPOR : API", opt: ["Kipas : Angin", "Lemari : Es", "Radio : Suara", "Senter : Baterai", "Televisi : Gambar"], ans: "a", expl: "Alat dan elemen yang dihasilkannya." },
+            { q: "KERTAS : REAM", opt: ["Baju : Kodi", "Telur : Butir", "Beras : Karung", "Rokok : Bungkus", "Air : Gelas"], ans: "a", expl: "Satuan jumlah barang dalam jumlah besar." },
+            { q: "TELUR : AYAM", opt: ["Kepompong : Kupu-kupu", "Biji : Pohon", "Bayi : Dewasa", "Berudu : Katak", "Larva : Lalat"], ans: "b", expl: "Cikal bakal makhluk hidup." },
+            { q: "REPUBLIK : PRESIDEN", opt: ["Kerajaan : Raja", "Provinsi : Gubernur", "Kota : Walikota", "Desa : Kepala Desa", "Sekolah : Kepala Sekolah"], ans: "a", expl: "Bentuk pemerintahan/wilayah dan pimpinannya." },
+            { q: "ABON : SAPI", opt: ["Dendeng : Rusa", "Keripik : Singkong", "Selai : Buah", "Tahu : Kedelai", "Keju : Susu"], ans: "d", expl: "Olahan makanan dan bahan bakunya." },
+            { q: "KOMPAS : ARAH", opt: ["Jam : Waktu", "Termometer : Suhu", "Timbangan : Berat", "Penggaris : Panjang", "Spidometer : Kecepatan"], ans: "a", expl: "Alat ukur dasar dan dimensinya." },
+            { q: "RAMALAN : ASTROLOGI", opt: ["Penyakit : Patologi", "Gempa : Seismologi", "Masyarakat : Sosiologi", "Hewan : Zoologi", "Bintang : Astronomi"], ans: "b", expl: "Objek dan cabang ilmu yang mempelajarinya." },
+            { q: "TEH : CANGKIR", opt: ["Air : Gelas", "Kopi : Botol", "Susu : Ember", "Makan : Piring", "Sup : Mangkok"], ans: "e", expl: "Jenis makanan/minuman dan wadah sajinya." },
+            { q: "MENTEGI : LEMAK", opt: ["Gula : Manis", "Jeruk : Vitamin C", "Daging : Protein", "Nasi : Karbohidrat", "Garam : Asin"], ans: "d", expl: "Bahan makanan dan kandungan nutrisi utamanya." },
+            { q: "GELAP : LAMPU", opt: ["Haus : Air", "Lapar : Nasi", "Dingin : Selimut", "Sakit : Dokter", "Bodoh : Belajar"], ans: "c", expl: "Kondisi fisik dan alat untuk mengatasinya secara langsung." },
+            { q: "KAKAOTUA : MERPATI", opt: ["Anjing : Herder", "Gajah : Semut", "Hiu : Paus", "Ular : Naga", "Elang : Rajawali"], ans: "e", expl: "Dua jenis hewan dalam satu kelompok." },
+            { q: "BATA : TANAH LIAT", opt: ["Kertas : Kayu", "Beton : Semen", "Kaca : Pasir", "Roti : Gandum", "Baju : Kapas"], ans: "c", expl: "Bahan bangunan dan bahan dasar pembentuknya secara fisik." },
+            { q: "PANGGUNG : AKTOR", opt: ["Perpustakaan : Pembaca", "Lapangan : Penonton", "Ring : Petinju", "Sirkuit : Pembalap", "Laboratorium : Ilmuwan"], ans: "c", expl: "Tempat pertunjukan/tanding dan pelakunya." },
+            { q: "FLORA : TANAMAN", opt: ["Fauna : Hewan", "Biota : Laut", "Satwa : Lindung", "Bakteri : Penyakit", "Manusia : Budaya"], ans: "a", expl: "Istilah biologi untuk klasifikasi makhluk hidup." },
+            { q: "MARAH : CEMBURU", opt: ["Sedih : Menangis", "Senang : Gembira", "Takut : Ngeri", "Benci : Dengki", "Cinta : Kasih"], ans: "d", expl: "Hubungan perasaan negatif yang berkaitan." },
+            { q: "KEPALA : HELM", opt: ["Kaki : Kaos Kaki", "Tangan : Jam", "Mata : Kacamata", "Rumah : Atap", "Jari : Cincin"], ans: "d", expl: "Bagian atas dan pelindungnya." },
+            { q: "MASAK : DAPUR", opt: ["Tidur : Kamar", "Makan : Restoran", "Belajar : Sekolah", "Olahraga : Stadion", "Mandi : Kamar Mandi"], ans: "e", expl: "Kata kerja dan tempat spesifik di rumah." },
+            { q: "UMUR : TAHUN", opt: ["Jarak : Meter", "Kecepatan : Km/Jam", "Berat : Kilogram", "Waktu : Detik", "Suhu : Derajat"], ans: "a", expl: "Besaran dan satuan standar internasional dasar." },
+            { q: "PILOT : PESAWAT", opt: ["Sopir : Mobil", "Masinis : Kereta", "Masinis : Kapal", "Kusir : Delman", "Tukang : Kayu"], ans: "b", expl: "Analogi pengemudi transportasi umum rel/udara." },
+            { q: "CACING : ULAR", opt: ["Kambing : Sapi", "Ulat : Sutra", "Belut : Ikan", "Biawak : Komodo", "Singa : Harimau"], ans: "d", expl: "Kemiripan bentuk fisik namun beda ukuran." },
+            { q: "TUKANG : GERGAJI", opt: ["Penjahit : Jarum", "Guru : Kapur", "Koki : Wajan", "Tukang Kebun : Cangkul", "Nelayan : Jaring"], ans: "a", expl: "Profesi dan alat kerja utamanya yang tajam." },
+            { q: "BUNGA : TAMAN", opt: ["Pohon : Hutan", "Murid : Kelas", "Pasien : Rumah Hospital", "Buku : Perpustakaan", "Barang : Gudang"], ans: "d", expl: "Objek yang tertata dalam tempat koleksi." },
+            { q: "AIR : HAUS", opt: ["Makanan : Lapar", "Api : Dingin", "Lampu : Gelap", "Obat : Sakit", "Angin : Gerah"], ans: "b", expl: "Unsur alam dan kebutuhan fisik untuk menetralkan kondisi." },
+            { q: "PESAWAT : BANDARA", opt: ["Kapal : Pelabuhan", "Kereta : Stasiun", "Bus : Terminal", "Motor : Parkir", "Sepeda : Rumah"], ans: "b", expl: "Kendaraan massal dan tempat pemberhentian resminya." }
+        ];
+
+        // STATE
+        let quizData = [];
+        let currentIdx = 0;
+        let responses = {};
+        let timerId;
+        let timerType = 'countdown';
+        let timeCount = 50 * 60;
+        let isQuizActive = false;
+
+        function startQuiz() {
+            const shuffleMode = document.getElementById('shuffle-mode').value === 'true';
+            timerType = document.getElementById('timer-mode').value;
+            
+            quizData = shuffleMode ? [...RAW_QUESTIONS].sort(() => Math.random() - 0.5) : [...RAW_QUESTIONS];
+            
+            const grid = document.getElementById('nav-grid');
+            grid.innerHTML = '';
+            quizData.forEach((_, i) => {
+                const b = document.createElement('button');
+                b.id = `nav-item-${i}`;
+                b.innerText = i + 1;
+                b.className = "aspect-square rounded-xl border border-slate-200 text-slate-400 font-bold flex items-center justify-center text-xs hover:bg-slate-50 transition-all";
+                b.onclick = () => jumpTo(i);
+                grid.appendChild(b);
+            });
+
+            document.getElementById('view-start').classList.add('hidden');
+            document.getElementById('view-quiz').classList.remove('hidden');
+            
+            isQuizActive = true;
+            initTimer();
+            renderQuestion();
+        }
+
+        function initTimer() {
+            clearInterval(timerId);
+            if(timerType === 'countdown') timeCount = 50 * 60;
+            else timeCount = 0;
+
+            timerId = setInterval(() => {
+                if(timerType === 'countdown') {
+                    timeCount--;
+                    if(timeCount <= 0) finishQuiz();
+                } else {
+                    timeCount++;
+                }
+                updateTimerDisplay();
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const m = Math.floor(timeCount / 60).toString().padStart(2, '0');
+            const s = (timeCount % 60).toString().padStart(2, '0');
+            document.getElementById('timer-display').innerText = `${m}:${s}`;
+        }
+
+        function renderQuestion() {
+            const item = quizData[currentIdx];
+            document.getElementById('header-question-num').innerText = `Soal ${currentIdx + 1} / 50`;
+            document.getElementById('question-text').innerText = item.q;
+            
+            const container = document.getElementById('options-container');
+            container.innerHTML = '';
+            
+            const labels = ['A', 'B', 'C', 'D', 'E'];
+            item.opt.forEach((o, i) => {
+                const isSelected = responses[currentIdx] === i;
+                const b = document.createElement('button');
+                b.className = `w-full text-left p-5 rounded-[1.25rem] border-2 transition-all flex items-center gap-4 ${isSelected ? 'border-slate-800 bg-slate-50' : 'border-slate-100 hover:border-slate-200'}`;
+                b.onclick = () => selectOption(i);
+                b.innerHTML = `
+                    <div class="w-10 h-10 rounded-full border-2 flex shrink-0 items-center justify-center font-bold ${isSelected ? 'bg-slate-800 border-slate-800 text-white' : 'border-slate-200 text-slate-400'}">
+                        ${labels[i]}
+                    </div>
+                    <span class="font-medium ${isSelected ? 'text-slate-900' : 'text-slate-600'}">${labels[i]}. ${o}</span>
+                `;
+                container.appendChild(b);
+            });
+
+            updateNavUI();
+            document.getElementById('btn-prev').disabled = currentIdx === 0;
+            document.getElementById('btn-next').innerText = currentIdx === 49 ? "Selesai" : "Lanjutkan &rarr;";
+        }
+
+        function selectOption(idx) {
+            responses[currentIdx] = idx;
+            renderQuestion();
+        }
+
+        function move(dir) {
+            if(dir === 1 && currentIdx === 49) {
+                openConfirmModal();
+                return;
+            }
+            currentIdx += dir;
+            renderQuestion();
+        }
+
+        function jumpTo(idx) {
+            currentIdx = idx;
+            renderQuestion();
+            if(window.innerWidth < 768) toggleSidebar();
+        }
+
+        function updateNavUI() {
+            quizData.forEach((_, i) => {
+                const btn = document.getElementById(`nav-item-${i}`);
+                if(!btn) return;
+                const isAnswered = responses[i] !== undefined;
+                const isCurrent = i === currentIdx;
+                
+                if(isCurrent) {
+                    btn.className = "aspect-square rounded-xl border-2 border-slate-800 bg-slate-800 text-white font-bold flex items-center justify-center text-xs scale-110 z-10 shadow-xl transition-all";
+                } else if(isAnswered) {
+                    btn.className = "aspect-square rounded-xl border border-emerald-500 bg-emerald-50 text-emerald-600 font-bold flex items-center justify-center text-xs transition-all";
+                } else {
+                    btn.className = "aspect-square rounded-xl border border-slate-200 text-slate-300 font-bold flex items-center justify-center text-xs transition-all";
+                }
+            });
+        }
+
+        function toggleSidebar() {
+            const sb = document.getElementById('sidebar');
+            sb.classList.toggle('-translate-x-full');
+        }
+
+        function openConfirmModal() {
+            document.getElementById('modal-confirm').classList.remove('hidden');
+        }
+
+        function closeConfirmModal() {
+            document.getElementById('modal-confirm').classList.add('hidden');
+        }
+
+        function finishQuiz() {
+            isQuizActive = false;
+            clearInterval(timerId);
+            closeConfirmModal();
+            document.getElementById('view-quiz').classList.add('hidden');
+            document.getElementById('view-result').classList.remove('hidden');
+            showResults();
+        }
+
+        function showResults() {
+            let correct = 0;
+            const labels = ['a', 'b', 'c', 'd', 'e'];
+            quizData.forEach((item, i) => {
+                if(responses[i] !== undefined && labels[responses[i]] === item.ans) correct++;
+            });
+
+            const answered = Object.keys(responses).length;
+            const percent = Math.round((answered / 50) * 100);
+            
+            document.getElementById('res-percent').innerText = `${percent}%`;
+            document.getElementById('res-score').innerText = `${correct} / 50`;
+            
+            const timeTaken = timerType === 'countdown' ? (50 * 60 - timeCount) : timeCount;
+            const m = Math.floor(timeTaken / 60).toString().padStart(2, '0');
+            const s = (timeTaken % 60).toString().padStart(2, '0');
+            document.getElementById('res-time').innerText = `${m}:${s}`;
+        }
+
+        function toggleDiscussion() {
+            const sec = document.getElementById('discussion-area');
+            const list = document.getElementById('discussion-list');
+            sec.classList.toggle('hidden');
+            
+            if(!sec.classList.contains('hidden')) {
+                list.innerHTML = '';
+                const labels = ['A', 'B', 'C', 'D', 'E'];
+                const ansKeys = ['a', 'b', 'c', 'd', 'e'];
+                
+                quizData.forEach((item, i) => {
+                    const ansIdx = responses[i];
+                    const isCorrect = ansIdx !== undefined && ansKeys[ansIdx] === item.ans;
+                    
+                    const card = document.createElement('div');
+                    card.className = "bg-white p-8 rounded-[2rem] border border-slate-100 shadow-sm text-left animate-fade";
+                    
+                    let userAnsText = ansIdx !== undefined ? `${labels[ansIdx]}. ${item.opt[ansIdx]}` : "Tidak Dijawab";
+                    let correctAnsText = `${item.ans.toUpperCase()}. ${item.opt[ansKeys.indexOf(item.ans)]}`;
+
+                    card.innerHTML = `
+                        <div class="flex justify-between items-center mb-6">
+                            <span class="text-[10px] font-bold text-slate-300 uppercase tracking-widest">Analisis Soal #${i+1}</span>
+                            <span class="px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-tighter ${isCorrect ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}">
+                                ${ansIdx === undefined ? 'Terlewat' : (isCorrect ? 'Tepat' : 'Kurang Tepat')}
+                            </span>
+                        </div>
+                        <p class="font-extrabold text-slate-800 mb-8 uppercase tracking-wide text-lg">${item.q}</p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="p-5 bg-slate-50 rounded-2xl border border-slate-100">
+                                <p class="text-[9px] font-bold text-slate-400 mb-2 uppercase tracking-widest">Pilihan Anda</p>
+                                <p class="${isCorrect ? 'text-emerald-600' : 'text-rose-600'} font-black text-sm">${userAnsText}</p>
+                            </div>
+                            <div class="p-5 bg-slate-900 rounded-2xl shadow-xl shadow-slate-200">
+                                <p class="text-[9px] font-bold text-slate-500 mb-2 uppercase tracking-widest">Kunci Jawaban</p>
+                                <p class="text-white font-black text-sm">${correctAnsText}</p>
+                            </div>
+                        </div>
+                        <div class="mt-4 p-6 bg-slate-50/50 rounded-2xl text-xs border-l-4 border-slate-800">
+                            <p class="text-slate-500 italic"><b class="text-slate-800 not-italic uppercase tracking-widest mr-2">Pembahasan:</b> ${item.expl}</p>
+                        </div>
+                    `;
+                    list.appendChild(card);
+                });
+                sec.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        async function downloadPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            doc.setFontSize(16);
+            doc.text("Latihan Analogi & Padanan Kata", 105, 20, { align: 'center' });
+            
+            const data = quizData.map((item, i) => [
+                i+1,
+                item.q,
+                item.ans.toUpperCase(),
+                item.expl
+            ]);
+
+            doc.autoTable({
+                startY: 30,
+                head: [['No', 'Pertanyaan', 'Kunci', 'Pembahasan']],
+                body: data,
+                styles: { fontSize: 8 },
+                columnStyles: { 0: { cellWidth: 10 }, 2: { cellWidth: 15 } },
+                headStyles: { fillColor: [30, 41, 59] }
+            });
+
+            doc.save("Analogi_Latihan_Matematika.pdf");
+        }
+    </script>
+</body>
+</html>
+
