@@ -19,28 +19,34 @@
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         
         .sidebar-transition { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        
+        #sidebar.hidden-sidebar {
+            transform: translateX(-100%);
+            width: 0;
+            overflow: hidden;
+        }
     </style>
 </head>
 <body class="bg-[#F8FAFC] text-slate-900">
 
-    <div id="app" class="min-h-screen flex flex-col">
+    <div id="app" class="min-h-screen flex flex-col overflow-hidden">
         <!-- TAMPILAN 1: MENU UTAMA -->
-        <div id="view-start" class="flex-grow flex items-center justify-center p-4">
+        <div id="view-start" class="flex-grow flex items-center justify-center p-4 overflow-y-auto">
             <div class="max-w-xl w-full bg-white rounded-[2rem] shadow-2xl p-10 border border-slate-100">
                 <div class="text-center mb-10">
                     <h1 class="text-3xl font-black text-slate-800 tracking-tight">Latihan Analogi & Padanan Kata</h1>
                     <div class="h-1 w-20 bg-slate-400 mx-auto mt-4 rounded-full"></div>
                 </div>
 
-                <div class="bg-slate-50 p-6 rounded-2xl mb-8 border border-slate-100">
+                <div class="bg-slate-50 p-6 rounded-2xl mb-8 border border-slate-100 shadow-sm">
                     <h2 class="font-bold text-slate-700 mb-4 flex items-center gap-2 text-xs uppercase tracking-widest">
                         Instruksi Pengerjaan
                     </h2>
                     <ul class="text-sm text-slate-600 space-y-3">
                         <li class="flex items-start gap-2"><span>.</span> 50 Soal Analogi & Padanan Kata pilihan ganda.</li>
-                        <li class="flex items-start gap-2"><span>.</span> Pilih mode waktu: Mundur 50 Menit atau Maju (Stopwatch).</li>
-                        <li class="flex items-start gap-2"><span>.</span> Jawaban tidak akan langsung berpindah (klik Lanjutkan).</li>
-                        <li class="flex items-start gap-2"><span>.</span> Gunakan Sidebar untuk navigasi cepat antar nomor.</li>
+                        <li class="flex items-start gap-2"><span>.</span> Pilih mode waktu: Mundur 50 Menit atau Maju (Tanpa Batas).</li>
+                        <li class="flex items-start gap-2"><span>.</span> Klik tombol Lanjutkan untuk pindah ke soal berikutnya.</li>
+                        <li class="flex items-start gap-2"><span>.</span> Klik icon bar di header untuk menyembunyikan navigasi soal.</li>
                     </ul>
                 </div>
 
@@ -61,7 +67,7 @@
                     </div>
                 </div>
 
-                <button onclick="startQuiz()" class="w-full bg-slate-800 hover:bg-black text-white font-bold py-5 rounded-2xl shadow-xl shadow-slate-200 transition-all transform active:scale-95">
+                <button onclick="startQuiz()" class="w-full bg-slate-800 hover:bg-black text-white font-bold py-5 rounded-2xl shadow-xl shadow-slate-200 transition-all transform active:scale-95 uppercase tracking-widest text-sm">
                     MULAI LATIHAN
                 </button>
             </div>
@@ -70,30 +76,36 @@
         <!-- TAMPILAN 2: INTERFACE KUIS -->
         <div id="view-quiz" class="hidden flex-grow flex flex-col md:flex-row h-screen overflow-hidden">
             <!-- Sidebar -->
-            <aside id="sidebar" class="fixed md:relative inset-y-0 left-0 w-72 bg-white border-r border-slate-100 sidebar-transition -translate-x-full md:translate-x-0 z-50 flex flex-col shadow-2xl md:shadow-none">
+            <aside id="sidebar" class="fixed md:relative inset-y-0 left-0 w-72 bg-white border-r border-slate-100 sidebar-transition z-50 flex flex-col shadow-2xl md:shadow-none">
                 <div class="p-8 border-b border-slate-50 flex justify-between items-center bg-white">
                     <h3 class="font-bold text-slate-800 uppercase text-[10px] tracking-widest">Navigasi Soal</h3>
                     <button onclick="toggleSidebar()" class="md:hidden text-slate-400 text-3xl font-light">&times;</button>
                 </div>
                 <div class="p-6 grid grid-cols-5 gap-2 overflow-y-auto flex-grow custom-scrollbar bg-white" id="nav-grid"></div>
-                <div class="p-6 border-t border-slate-50 bg-slate-50/50">
-                    <button onclick="openConfirmModal()" class="w-full py-4 bg-rose-500 hover:bg-rose-600 text-white rounded-2xl font-bold transition-all shadow-lg shadow-rose-100 text-xs uppercase tracking-widest">
+                <div class="p-6 border-t border-slate-50 bg-slate-50/50 block md:hidden">
+                    <button onclick="openConfirmModal()" class="w-full py-4 bg-rose-500 text-white rounded-2xl font-bold text-xs uppercase tracking-widest">
                         Selesaikan Kuis
                     </button>
                 </div>
             </aside>
 
             <!-- Main Panel -->
-            <main class="flex-grow flex flex-col overflow-hidden bg-[#F1F5F9]">
-                <header class="bg-white border-b border-slate-100 px-8 py-5 flex justify-between items-center shrink-0">
+            <main class="flex-grow flex flex-col overflow-hidden bg-[#F1F5F9] w-full">
+                <header class="bg-white border-b border-slate-100 px-6 py-4 flex justify-between items-center shrink-0 shadow-sm z-10">
                     <div class="flex items-center gap-4">
                         <button onclick="toggleSidebar()" class="p-2.5 hover:bg-slate-50 rounded-xl text-slate-500 transition-colors">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
                         </button>
-                        <h2 class="text-lg font-bold text-slate-800" id="header-question-num">Soal 1 / 50</h2>
+                        <h2 class="text-base md:text-lg font-bold text-slate-800 uppercase tracking-tight" id="header-question-num">Soal 1 / 50</h2>
                     </div>
-                    <div class="bg-slate-900 text-white px-6 py-2.5 rounded-2xl font-mono font-bold text-lg shadow-xl shadow-slate-200">
-                        <span id="timer-display">50:00</span>
+                    
+                    <div class="flex items-center gap-3">
+                        <button onclick="openConfirmModal()" class="hidden md:flex items-center px-6 py-2.5 bg-rose-500 hover:bg-rose-600 text-white rounded-xl font-bold transition-all shadow-md text-xs uppercase tracking-wider">
+                            Selesaikan
+                        </button>
+                        <div class="bg-slate-900 text-white px-5 py-2.5 rounded-xl font-mono font-bold text-lg shadow-xl shadow-slate-200">
+                            <span id="timer-display">50:00</span>
+                        </div>
                     </div>
                 </header>
 
@@ -101,16 +113,16 @@
                     <div class="max-w-3xl w-full animate-fade">
                         <div class="bg-white rounded-[2.5rem] p-8 md:p-12 shadow-sm border border-slate-100">
                             <div class="text-[10px] font-bold text-slate-300 uppercase mb-6 tracking-widest">Pertanyaan Analogi</div>
-                            <p id="question-text" class="text-2xl text-slate-800 font-extrabold leading-relaxed mb-12 uppercase tracking-wide">...</p>
+                            <p id="question-text" class="text-xl md:text-2xl text-slate-800 font-extrabold leading-relaxed mb-12 uppercase">...</p>
                             <div id="options-container" class="space-y-3"></div>
                         </div>
 
-                        <div class="mt-10 flex justify-between items-center px-4">
+                        <div class="mt-10 flex justify-between items-center px-4 pb-10 md:pb-0">
                             <button id="btn-prev" onclick="move(-1)" class="flex items-center gap-2 font-bold text-slate-400 hover:text-slate-800 disabled:opacity-20 transition-all">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
                                 Sebelumnya
                             </button>
-                            <button id="btn-next" onclick="move(1)" class="bg-slate-800 hover:bg-black text-white px-12 py-4 rounded-2xl font-bold shadow-2xl shadow-slate-300 transition-all active:scale-95">
+                            <button id="btn-next" onclick="move(1)" class="bg-slate-800 hover:bg-black text-white px-10 md:px-14 py-4 rounded-2xl font-bold shadow-2xl shadow-slate-300 transition-all active:scale-95">
                                 Lanjutkan &rarr;
                             </button>
                         </div>
@@ -144,7 +156,6 @@
 
                     <div class="flex flex-wrap justify-center gap-4">
                         <button onclick="toggleDiscussion()" class="px-10 py-5 bg-slate-800 text-white rounded-2xl font-bold hover:bg-black transition-all shadow-xl shadow-slate-200 flex items-center gap-3">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
                             Lihat Pembahasan
                         </button>
                         <button onclick="downloadPDF()" class="px-10 py-5 bg-slate-100 text-slate-700 rounded-2xl font-bold hover:bg-slate-200 transition-all flex items-center gap-3 border border-slate-200">
@@ -156,8 +167,8 @@
                     </div>
                 </div>
 
-                <div id="discussion-area" class="hidden space-y-6 animate-fade">
-                    <h3 class="text-2xl font-black text-slate-800 pl-6 border-l-4 border-slate-800">Detail Analisis Jawaban</h3>
+                <div id="discussion-area" class="hidden space-y-6 animate-fade pb-20">
+                    <h3 class="text-2xl font-black text-slate-800 pl-6 border-l-4 border-slate-800">Analisis Detail Jawaban</h3>
                     <div id="discussion-list" class="space-y-6"></div>
                 </div>
             </div>
@@ -171,11 +182,11 @@
                         <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     </div>
                     <h3 class="text-2xl font-black text-slate-800 mb-2">Sudah Selesai?</h3>
-                    <p class="text-slate-400 text-sm">Pastikan Anda sudah meninjau kembali jawaban yang sulit.</p>
+                    <p class="text-slate-500 text-sm mt-2 text-center">Pastikan semua soal yang ingin dijawab sudah terisi dengan benar.</p>
                 </div>
                 <div class="flex gap-4">
                     <button onclick="closeConfirmModal()" class="flex-1 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold text-slate-400 hover:bg-slate-100 transition-all">Batal</button>
-                    <button onclick="finishQuiz()" class="flex-1 py-4 bg-slate-800 text-white rounded-2xl font-bold shadow-xl shadow-slate-200 transition-all">Ya, Selesai</button>
+                    <button onclick="finishQuiz()" class="flex-1 py-4 bg-rose-500 text-white rounded-2xl font-bold shadow-lg shadow-rose-200 transition-all">Ya, Selesai</button>
                 </div>
             </div>
         </div>
@@ -184,56 +195,56 @@
     <script>
         // DATA 50 SOAL ANALOGI
         const RAW_QUESTIONS = [
-            { q: "GURU : SEKOLAH", opt: ["Penebang : Hutan", "Petani : Ladang", "Buruh : Pabrik", "Dokter : Pasien", "Polisi : Jalan"], ans: "b", expl: "Profesi dan tempat bekerjanya secara spesifik (Petani di Ladang)." },
-            { q: "KAKI : SEPATU", opt: ["Topi : Kepala", "Telinga : Anting", "Cincin : Jari", "Tangan : Sarung Tangan", "Leher : Kalung"], ans: "d", expl: "Anggota tubuh dan pelindung/alasnya." },
-            { q: "MATA : MELIHAT", opt: ["Kaki : Berjalan", "Telinga : Mendengar", "Mulut : Makan", "Hidung : Mencium", "Tangan : Memegang"], ans: "b", expl: "Indra dan fungsi utamanya." },
-            { q: "HUJAN : BANJIR", opt: ["Api : Kebakaran", "Air : Haus", "Panas : Matahari", "Angin : Dingin", "Gempa : Tsunami"], ans: "a", expl: "Hubungan sebab-akibat fenomena alam." },
-            { q: "KAYU : MEJA", opt: ["Besi : Jembatan", "Tanah : Rumah", "Benang : Kain", "Emas : Perhiasan", "Tepung : Roti"], ans: "e", expl: "Bahan baku dan produk olahannya." },
-            { q: "KOSONG : HAMPA", opt: ["Cair : Encer", "Siang : Malam", "Penuh : Sesak", "Ribut : Sorak", "Cepat : Lambat"], ans: "c", expl: "Hubungan sinonim yang menunjukkan intensitas." },
-            { q: "MOBIL : BENSIN", opt: ["Lampu : Listrik", "Pelari : Sepatu", "Pesawat : Avtur", "Sapi : Rumput", "Manusia : Makanan"], ans: "c", expl: "Kendaraan dan bahan bakar spesifiknya." },
-            { q: "INDONESIA : JAKARTA", opt: ["Malaysia : Kuala Lumpur", "Belanda : Amsterdam", "Inggris : London", "Filipina : Manila", "Thailand : Bangkok"], ans: "a", expl: "Negara tetangga dan ibu kotanya." },
-            { q: "SARUNG TANGAN : TINJU", opt: ["Raket : Tenis", "Sepatu : Lari", "Mikroskop : Bakteri", "Helm : Motor", "Gelas : Minum"], ans: "a", expl: "Alat khusus untuk olahraga tertentu." },
-            { q: "HAUS : MINUM", opt: ["Lapar : Makan", "Ngantuk : Tidur", "Capek : Istirahat", "Marah : Teriak", "Sakit : Obat"], ans: "a", expl: "Kebutuhan fisiologis dan solusinya." },
-            { q: "SAPI : RUMPUT", opt: ["Harimau : Daging", "Singa : Hutan", "Kera : Pisang", "Ulat : Daun", "Ayam : Cacing"], ans: "a", expl: "Hewan dan jenis makanan utamanya." },
-            { q: "MATAHARI : TERANG", opt: ["Es : Dingin", "Api : Panas", "Air : Basah", "Lampu : Sinar", "Malam : Gelap"], ans: "b", expl: "Benda dan sifat/dampak yang dihasilkan." },
-            { q: "PENULIS : BUKU", opt: ["Pelukis : Kanvas", "Penjahit : Baju", "Guru : Murid", "Komposer : Lagu", "Sutradara : Film"], ans: "d", expl: "Pencipta dan karya seni intelektual." },
-            { q: "GIGI : KUNYAH", opt: ["Mata : Kedip", "Tangan : Tulis", "Lidah : Kecap", "Hidung : Hirup", "Telinga : Dengar"], ans: "c", expl: "Organ tubuh dan fungsi sensorik/mekanik spesifik." },
-            { q: "SENAPAN : BERBURU", opt: ["Parang : Mengasah", "Cangkul : Bertani", "Jarum : Menjahit", "Pancing : Ikan", "Gunting : Memotong"], ans: "b", expl: "Alat dan aktivitas profesi." },
-            { q: "KILAT : GUNTUR", opt: ["Api : Asap", "Siang : Malam", "Bel : Bunyi", "Lampu : Cahaya", "Matahari : Bulan"], ans: "a", expl: "Dua hal yang muncul beriringan dalam urutan waktu." },
-            { q: "DOKTER : PASIEN", opt: ["Guru : Murid", "Pengacara : Klien", "Arsitek : Gedung", "Polisi : Pencuri", "Montir : Mobil"], ans: "b", expl: "Pemberi jasa profesional dan pengguna jasanya." },
-            { q: "BULAN : BUMI", opt: ["Bumi : Matahari", "Planet : Orbit", "Bintang : Langit", "Satelit : Antena", "Komet : Ekor"], ans: "a", expl: "Benda langit dan pusat orbitnya." },
-            { q: "TELESKOP : ASTRONOM", opt: ["Mikroskop : Biolog", "Stetoskop : Dokter", "Kompas : Nahkoda", "Kamera : Fotografer", "Palu : Hakim"], ans: "b", expl: "Alat diagnostik/pengamat utama profesi." },
-            { q: "ES : AIR", opt: ["Air : Uap", "Kayu : Arang", "Besi : Karat", "Beras : Nasi", "Kertas : Abu"], ans: "a", expl: "Perubahan wujud benda." },
-            { q: "SINGA : RUSA", opt: ["Kucing : Tikus", "Elang : Kelinci", "Serigala : Domba", "Ular : Katak", "Burung : Cacing"], ans: "b", expl: "Predator puncak dan mangsanya." },
-            { q: "PUISI : BAIT", opt: ["Rumah : Ruang", "Buku : Halaman", "Lagu : Nada", "Drama : Babak", "Cerpen : Paragraf"], ans: "d", expl: "Karya sastra dan pembagian strukturnya." },
-            { q: "HIDUNG : BAU", opt: ["Telinga : Suara", "Lidah : Rasa", "Mata : Cahaya", "Kulit : Sentuhan", "Otak : Pikiran"], ans: "b", expl: "Alat indra dan objek yang ditangkap." },
-            { q: "PESAWAT : PILOT", opt: ["Kapal : Nahkoda", "Kereta : Masinis", "Motor : Pengendara", "Sepeda : Pengayuh", "Bus : Sopir"], ans: "a", expl: "Kendaraan besar dan sebutan pengemudinya." },
-            { q: "SARANG : BURUNG", opt: ["Kandang : Sapi", "Gua : Kelelawar", "Kolam : Ikan", "Hutan : Harimau", "Akuarium : Kura-kura"], ans: "b", expl: "Tempat tinggal alami hewan." },
-            { q: "MERAH : BERHENTI", opt: ["Hijau : Jalan", "Kuning : Hati-hati", "Biru : Dingin", "Putih : Suci", "Hitam : Duka"], ans: "a", expl: "Warna lampu lalu lintas dan perintahnya." },
-            { q: "KOMPOR : API", opt: ["Kipas : Angin", "Lemari : Es", "Radio : Suara", "Senter : Baterai", "Televisi : Gambar"], ans: "a", expl: "Alat dan elemen yang dihasilkannya." },
-            { q: "KERTAS : REAM", opt: ["Baju : Kodi", "Telur : Butir", "Beras : Karung", "Rokok : Bungkus", "Air : Gelas"], ans: "a", expl: "Satuan jumlah barang dalam jumlah besar." },
-            { q: "TELUR : AYAM", opt: ["Kepompong : Kupu-kupu", "Biji : Pohon", "Bayi : Dewasa", "Berudu : Katak", "Larva : Lalat"], ans: "b", expl: "Cikal bakal makhluk hidup." },
-            { q: "REPUBLIK : PRESIDEN", opt: ["Kerajaan : Raja", "Provinsi : Gubernur", "Kota : Walikota", "Desa : Kepala Desa", "Sekolah : Kepala Sekolah"], ans: "a", expl: "Bentuk pemerintahan/wilayah dan pimpinannya." },
-            { q: "ABON : SAPI", opt: ["Dendeng : Rusa", "Keripik : Singkong", "Selai : Buah", "Tahu : Kedelai", "Keju : Susu"], ans: "d", expl: "Olahan makanan dan bahan bakunya." },
-            { q: "KOMPAS : ARAH", opt: ["Jam : Waktu", "Termometer : Suhu", "Timbangan : Berat", "Penggaris : Panjang", "Spidometer : Kecepatan"], ans: "a", expl: "Alat ukur dasar dan dimensinya." },
-            { q: "RAMALAN : ASTROLOGI", opt: ["Penyakit : Patologi", "Gempa : Seismologi", "Masyarakat : Sosiologi", "Hewan : Zoologi", "Bintang : Astronomi"], ans: "b", expl: "Objek dan cabang ilmu yang mempelajarinya." },
-            { q: "TEH : CANGKIR", opt: ["Air : Gelas", "Kopi : Botol", "Susu : Ember", "Makan : Piring", "Sup : Mangkok"], ans: "e", expl: "Jenis makanan/minuman dan wadah sajinya." },
-            { q: "MENTEGI : LEMAK", opt: ["Gula : Manis", "Jeruk : Vitamin C", "Daging : Protein", "Nasi : Karbohidrat", "Garam : Asin"], ans: "d", expl: "Bahan makanan dan kandungan nutrisi utamanya." },
-            { q: "GELAP : LAMPU", opt: ["Haus : Air", "Lapar : Nasi", "Dingin : Selimut", "Sakit : Dokter", "Bodoh : Belajar"], ans: "c", expl: "Kondisi fisik dan alat untuk mengatasinya secara langsung." },
-            { q: "KAKAOTUA : MERPATI", opt: ["Anjing : Herder", "Gajah : Semut", "Hiu : Paus", "Ular : Naga", "Elang : Rajawali"], ans: "e", expl: "Dua jenis hewan dalam satu kelompok." },
-            { q: "BATA : TANAH LIAT", opt: ["Kertas : Kayu", "Beton : Semen", "Kaca : Pasir", "Roti : Gandum", "Baju : Kapas"], ans: "c", expl: "Bahan bangunan dan bahan dasar pembentuknya secara fisik." },
-            { q: "PANGGUNG : AKTOR", opt: ["Perpustakaan : Pembaca", "Lapangan : Penonton", "Ring : Petinju", "Sirkuit : Pembalap", "Laboratorium : Ilmuwan"], ans: "c", expl: "Tempat pertunjukan/tanding dan pelakunya." },
-            { q: "FLORA : TANAMAN", opt: ["Fauna : Hewan", "Biota : Laut", "Satwa : Lindung", "Bakteri : Penyakit", "Manusia : Budaya"], ans: "a", expl: "Istilah biologi untuk klasifikasi makhluk hidup." },
-            { q: "MARAH : CEMBURU", opt: ["Sedih : Menangis", "Senang : Gembira", "Takut : Ngeri", "Benci : Dengki", "Cinta : Kasih"], ans: "d", expl: "Hubungan perasaan negatif yang berkaitan." },
-            { q: "KEPALA : HELM", opt: ["Kaki : Kaos Kaki", "Tangan : Jam", "Mata : Kacamata", "Rumah : Atap", "Jari : Cincin"], ans: "d", expl: "Bagian atas dan pelindungnya." },
-            { q: "MASAK : DAPUR", opt: ["Tidur : Kamar", "Makan : Restoran", "Belajar : Sekolah", "Olahraga : Stadion", "Mandi : Kamar Mandi"], ans: "e", expl: "Kata kerja dan tempat spesifik di rumah." },
-            { q: "UMUR : TAHUN", opt: ["Jarak : Meter", "Kecepatan : Km/Jam", "Berat : Kilogram", "Waktu : Detik", "Suhu : Derajat"], ans: "a", expl: "Besaran dan satuan standar internasional dasar." },
-            { q: "PILOT : PESAWAT", opt: ["Sopir : Mobil", "Masinis : Kereta", "Masinis : Kapal", "Kusir : Delman", "Tukang : Kayu"], ans: "b", expl: "Analogi pengemudi transportasi umum rel/udara." },
-            { q: "CACING : ULAR", opt: ["Kambing : Sapi", "Ulat : Sutra", "Belut : Ikan", "Biawak : Komodo", "Singa : Harimau"], ans: "d", expl: "Kemiripan bentuk fisik namun beda ukuran." },
-            { q: "TUKANG : GERGAJI", opt: ["Penjahit : Jarum", "Guru : Kapur", "Koki : Wajan", "Tukang Kebun : Cangkul", "Nelayan : Jaring"], ans: "a", expl: "Profesi dan alat kerja utamanya yang tajam." },
-            { q: "BUNGA : TAMAN", opt: ["Pohon : Hutan", "Murid : Kelas", "Pasien : Rumah Hospital", "Buku : Perpustakaan", "Barang : Gudang"], ans: "d", expl: "Objek yang tertata dalam tempat koleksi." },
-            { q: "AIR : HAUS", opt: ["Makanan : Lapar", "Api : Dingin", "Lampu : Gelap", "Obat : Sakit", "Angin : Gerah"], ans: "b", expl: "Unsur alam dan kebutuhan fisik untuk menetralkan kondisi." },
-            { q: "PESAWAT : BANDARA", opt: ["Kapal : Pelabuhan", "Kereta : Stasiun", "Bus : Terminal", "Motor : Parkir", "Sepeda : Rumah"], ans: "b", expl: "Kendaraan massal dan tempat pemberhentian resminya." }
+            { q: "GURU : SEKOLAH", opt: ["Penebang : Hutan", "Petani : Ladang", "Buruh : Pabrik", "Dokter : Pasien", "Polisi : Jalan"], ans: "b", expl: "Guru bekerja di Sekolah (Profesi : Tempat Bekerja). Petani bekerja di Ladang." },
+            { q: "KAKI : SEPATU", opt: ["Topi : Kepala", "Telinga : Anting", "Cincin : Jari", "Tangan : Sarung Tangan", "Leher : Kalung"], ans: "d", expl: "Kaki dilindungi oleh Sepatu. Tangan dilindungi oleh Sarung Tangan." },
+            { q: "MATA : MELIHAT", opt: ["Kaki : Berjalan", "Telinga : Mendengar", "Mulut : Makan", "Hidung : Mencium", "Tangan : Memegang"], ans: "b", expl: "Mata berfungsi untuk Melihat (Alat : Fungsi). Telinga berfungsi untuk Mendengar." },
+            { q: "HUJAN : BANJIR", opt: ["Api : Kebakaran", "Air : Haus", "Panas : Matahari", "Angin : Dingin", "Gempa : Tsunami"], ans: "a", expl: "Hujan yang berlebih menyebabkan Banjir (Sebab : Akibat). Api menyebabkan Kebakaran." },
+            { q: "KAYU : MEJA", opt: ["Besi : Jembatan", "Tanah : Rumah", "Benang : Kain", "Emas : Perhiasan", "Tepung : Roti"], ans: "e", expl: "Kayu adalah bahan baku Meja. Tepung adalah bahan baku Roti." },
+            { q: "KOSONG : HAMPA", opt: ["Cair : Encer", "Siang : Malam", "Penuh : Sesak", "Ribut : Sorak", "Cepat : Lambat"], ans: "c", expl: "Kosong bersinonim dengan Hampa. Penuh bersinonim dengan Sesak." },
+            { q: "MOBIL : BENSIN", opt: ["Lampu : Listrik", "Pelari : Sepatu", "Pesawat : Avtur", "Sapi : Rumput", "Manusia : Makanan"], ans: "c", expl: "Mobil digerakkan oleh Bensin. Pesawat digerakkan oleh Avtur." },
+            { q: "INDONESIA : JAKARTA", opt: ["Malaysia : Kuala Lumpur", "Belanda : Amsterdam", "Inggris : London", "Filipina : Manila", "Thailand : Bangkok"], ans: "a", expl: "Jakarta adalah ibukota Indonesia. Kuala Lumpur adalah ibukota Malaysia." },
+            { q: "SARUNG TANGAN : TINJU", opt: ["Raket : Tenis", "Sepatu : Lari", "Mikroskop : Bakteri", "Helm : Motor", "Gelas : Minum"], ans: "a", expl: "Sarung tangan alat khusus untuk Tinju. Raket alat khusus untuk Tenis." },
+            { q: "HAUS : MINUM", opt: ["Lapar : Makan", "Ngantuk : Tidur", "Capek : Istirahat", "Marah : Teriak", "Sakit : Obat"], ans: "a", expl: "Haus butuh Minum (Kondisi : Solusi). Lapar butuh Makan." },
+            { q: "SAPI : RUMPUT", opt: ["Harimau : Daging", "Singa : Hutan", "Kera : Pisang", "Ulat : Daun", "Ayam : Cacing"], ans: "a", expl: "Sapi makan Rumput (Hewan : Makanan). Harimau makan Daging." },
+            { q: "MATAHARI : TERANG", opt: ["Es : Dingin", "Api : Panas", "Air : Basah", "Lampu : Sinar", "Malam : Gelap"], ans: "b", expl: "Matahari menghasilkan Terang. Api menghasilkan Panas." },
+            { q: "PENULIS : BUKU", opt: ["Pelukis : Kanvas", "Penjahit : Baju", "Guru : Murid", "Komposer : Lagu", "Sutradara : Film"], ans: "d", expl: "Penulis menghasilkan Buku (Pencipta : Karya). Komposer menghasilkan Lagu." },
+            { q: "GIGI : KUNYAH", opt: ["Mata : Kedip", "Tangan : Tulis", "Lidah : Kecap", "Hidung : Hirup", "Telinga : Dengar"], ans: "c", expl: "Gigi berfungsi untuk Mengunyah. Lidah berfungsi untuk Mengecap." },
+            { q: "SENAPAN : BERBURU", opt: ["Parang : Mengasah", "Cangkul : Bertani", "Jarum : Menjahit", "Pancing : Ikan", "Gunting : Memotong"], ans: "b", expl: "Senapan digunakan untuk Berburu. Cangkul digunakan untuk Bertani." },
+            { q: "KILAT : GUNTUR", opt: ["Api : Asap", "Siang : Malam", "Bel : Bunyi", "Lampu : Cahaya", "Matahari : Bulan"], ans: "a", expl: "Kilat diikuti Guntur. Api diikuti Asap." },
+            { q: "DOKTER : PASIEN", opt: ["Guru : Murid", "Pengacara : Klien", "Arsitek : Gedung", "Polisi : Pencuri", "Montir : Mobil"], ans: "b", expl: "Dokter melayani Pasien. Pengacara melayani Klien." },
+            { q: "BULAN : BUMI", opt: ["Bumi : Matahari", "Planet : Orbit", "Bintang : Langit", "Satelit : Antena", "Komet : Ekor"], ans: "a", expl: "Bulan mengelilingi Bumi. Bumi mengelilingi Matahari." },
+            { q: "TELESKOP : ASTRONOM", opt: ["Mikroskop : Biolog", "Stetoskop : Dokter", "Kompas : Nahkoda", "Kamera : Fotografer", "Palu : Hakim"], ans: "b", expl: "Teleskop alat utama Astronom. Stetoskop alat utama Dokter." },
+            { q: "ES : AIR", opt: ["Air : Uap", "Kayu : Arang", "Besi : Karat", "Beras : Nasi", "Kertas : Abu"], ans: "a", expl: "Es menguap menjadi Air (atau sebaliknya). Air berubah menjadi Uap." },
+            { q: "SINGA : RUSA", opt: ["Kucing : Tikus", "Elang : Kelinci", "Serigala : Domba", "Ular : Katak", "Burung : Cacing"], ans: "b", expl: "Singa memburu Rusa. Elang memburu Kelinci." },
+            { q: "PUISI : BAIT", opt: ["Rumah : Ruang", "Buku : Halaman", "Lagu : Nada", "Drama : Babak", "Cerpen : Paragraf"], ans: "d", expl: "Puisi terbagi atas Bait. Drama terbagi atas Babak." },
+            { q: "HIDUNG : BAU", opt: ["Telinga : Suara", "Lidah : Rasa", "Mata : Cahaya", "Kulit : Sentuhan", "Otak : Pikiran"], ans: "b", expl: "Hidung menangkap Bau. Lidah menangkap Rasa." },
+            { q: "PESAWAT : PILOT", opt: ["Kapal : Nahkoda", "Kereta : Masinis", "Motor : Pengendara", "Sepeda : Pengayuh", "Bus : Sopir"], ans: "a", expl: "Pesawat dikemudikan Pilot. Kapal dikemudikan Nahkoda." },
+            { q: "SARANG : BURUNG", opt: ["Kandang : Sapi", "Gua : Kelelawar", "Kolam : Ikan", "Hutan : Harimau", "Akuarium : Kura-kura"], ans: "b", expl: "Sarang tempat tinggal Burung. Gua tempat tinggal Kelelawar." },
+            { q: "MERAH : BERHENTI", opt: ["Hijau : Jalan", "Kuning : Hati-hati", "Biru : Dingin", "Putih : Suci", "Hitam : Duka"], ans: "a", expl: "Merah artinya Berhenti (Warna : Instruksi). Hijau artinya Jalan." },
+            { q: "KOMPOR : API", opt: ["Kipas : Angin", "Lemari : Es", "Radio : Suara", "Senter : Baterai", "Televisi : Gambar"], ans: "a", expl: "Kompor menghasilkan Api. Kipas menghasilkan Angin." },
+            { q: "KERTAS : REAM", opt: ["Baju : Kodi", "Telur : Butir", "Beras : Karung", "Rokok : Bungkus", "Air : Gelas"], ans: "a", expl: "Kertas satuannya Ream. Baju satuannya Kodi." },
+            { q: "TELUR : AYAM", opt: ["Kepompong : Kupu-kupu", "Biji : Pohon", "Bayi : Dewasa", "Berudu : Katak", "Larva : Lalat"], ans: "b", expl: "Telur cikal bakal Ayam. Biji cikal bakal Pohon." },
+            { q: "REPUBLIK : PRESIDEN", opt: ["Kerajaan : Raja", "Provinsi : Gubernur", "Kota : Walikota", "Desa : Kepala Desa", "Sekolah : Kepala Sekolah"], ans: "a", expl: "Republik dipimpin Presiden. Kerajaan dipimpin Raja." },
+            { q: "ABON : SAPI", opt: ["Dendeng : Rusa", "Keripik : Singkong", "Selai : Buah", "Tahu : Kedelai", "Keju : Susu"], ans: "d", expl: "Abon terbuat dari Sapi. Tahu terbuat dari Kedelai." },
+            { q: "KOMPAS : ARAH", opt: ["Jam : Waktu", "Termometer : Suhu", "Timbangan : Berat", "Penggaris : Panjang", "Spidometer : Kecepatan"], ans: "a", expl: "Kompas menunjukkan Arah. Jam menunjukkan Waktu." },
+            { q: "RAMALAN : ASTROLOGI", opt: ["Penyakit : Patologi", "Gempa : Seismologi", "Masyarakat : Sosiologi", "Hewan : Zoologi", "Bintang : Astronomi"], ans: "b", expl: "Astrologi ilmu ramalan. Seismologi ilmu gempa." },
+            { q: "TEH : CANGKIR", opt: ["Air : Gelas", "Kopi : Botol", "Susu : Ember", "Makan : Piring", "Sup : Mangkok"], ans: "e", expl: "Teh diletakkan di Cangkir. Sup diletakkan di Mangkok." },
+            { q: "MENTEGI : LEMAK", opt: ["Gula : Manis", "Jeruk : Vitamin C", "Daging : Protein", "Nasi : Karbohidrat", "Garam : Asin"], ans: "d", expl: "Mentega mengandung Lemak. Nasi mengandung Karbohidrat." },
+            { q: "GELAP : LAMPU", opt: ["Haus : Air", "Lapar : Nasi", "Dingin : Selimut", "Sakit : Dokter", "Bodoh : Belajar"], ans: "c", expl: "Gelap diatasi dengan Lampu. Dingin diatasi dengan Selimut." },
+            { q: "KAKAOTUA : MERPATI", opt: ["Anjing : Herder", "Gajah : Semut", "Hiu : Paus", "Ular : Naga", "Elang : Rajawali"], ans: "e", expl: "Kedua hewan sejenis (burung). Elang dan Rajawali juga sejenis." },
+            { q: "BATA : TANAH LIAT", opt: ["Kertas : Kayu", "Beton : Semen", "Kaca : Pasir", "Roti : Gandum", "Baju : Kapas"], ans: "c", expl: "Bata terbuat dari Tanah Liat. Kaca terbuat dari Pasir." },
+            { q: "PANGGUNG : AKTOR", opt: ["Perpustakaan : Pembaca", "Lapangan : Penonton", "Ring : Petinju", "Sirkuit : Pembalap", "Laboratorium : Ilmuwan"], ans: "c", expl: "Aktor beraksi di Panggung. Petinju beraksi di Ring." },
+            { q: "FLORA : TANAMAN", opt: ["Fauna : Hewan", "Biota : Laut", "Satwa : Lindung", "Bakteri : Penyakit", "Manusia : Budaya"], ans: "a", expl: "Flora adalah Tanaman. Fauna adalah Hewan." },
+            { q: "MARAH : CEMBURU", opt: ["Sedih : Menangis", "Senang : Gembira", "Takut : Ngeri", "Benci : Dengki", "Cinta : Kasih"], ans: "d", expl: "Cemburu mengakibatkan Marah. Dengki mengakibatkan Benci." },
+            { q: "KEPALA : HELM", opt: ["Kaki : Kaos Kaki", "Tangan : Jam", "Mata : Kacamata", "Rumah : Atap", "Jari : Cincin"], ans: "d", expl: "Helm pelindung Kepala. Atap pelindung Rumah." },
+            { q: "MASAK : DAPUR", opt: ["Tidur : Kamar", "Makan : Restoran", "Belajar : Sekolah", "Olahraga : Stadion", "Mandi : Kamar Mandi"], ans: "e", expl: "Masak dilakukan di Dapur. Mandi dilakukan di Kamar Mandi." },
+            { q: "UMUR : TAHUN", opt: ["Jarak : Meter", "Kecepatan : Km/Jam", "Berat : Kilogram", "Waktu : Detik", "Suhu : Derajat"], ans: "a", expl: "Umur satuannya Tahun. Jarak satuannya Meter." },
+            { q: "PILOT : PESAWAT", opt: ["Sopir : Mobil", "Masinis : Kereta", "Masinis : Kapal", "Kusir : Delman", "Tukang : Kayu"], ans: "b", expl: "Pilot pengemudi Pesawat. Masinis pengemudi Kereta." },
+            { q: "CACING : ULAR", opt: ["Kambing : Sapi", "Ulat : Sutra", "Belut : Ikan", "Biawak : Komodo", "Singa : Harimau"], ans: "d", expl: "Cacing mirip Ular (versi kecil). Biawak mirip Komodo (versi kecil)." },
+            { q: "TUKANG : GERGAJI", opt: ["Penjahit : Jarum", "Guru : Kapur", "Koki : Wajan", "Tukang Kebun : Cangkul", "Nelayan : Jaring"], ans: "a", expl: "Tukang menggunakan Gergaji. Penjahit menggunakan Jarum." },
+            { q: "BUNGA : TAMAN", opt: ["Pohon : Hutan", "Murid : Kelas", "Pasien : Rumah Sakit", "Buku : Perpustakaan", "Barang : Gudang"], ans: "d", expl: "Bunga diletakkan di Taman. Buku diletakkan di Perpustakaan." },
+            { q: "AIR : HAUS", opt: ["Makanan : Lapar", "Api : Dingin", "Lampu : Gelap", "Obat : Sakit", "Angin : Gerah"], ans: "b", expl: "Haus membutuhkan Air. Dingin membutuhkan Api." },
+            { q: "PESAWAT : BANDARA", opt: ["Kapal : Pelabuhan", "Kereta : Stasiun", "Bus : Terminal", "Motor : Parkir", "Sepeda : Rumah"], ans: "b", expl: "Pesawat berhenti di Bandara. Kereta berhenti di Stasiun." }
         ];
 
         // STATE
@@ -251,13 +262,14 @@
             
             quizData = shuffleMode ? [...RAW_QUESTIONS].sort(() => Math.random() - 0.5) : [...RAW_QUESTIONS];
             
+            // Build Nav Grid
             const grid = document.getElementById('nav-grid');
             grid.innerHTML = '';
             quizData.forEach((_, i) => {
                 const b = document.createElement('button');
                 b.id = `nav-item-${i}`;
                 b.innerText = i + 1;
-                b.className = "aspect-square rounded-xl border border-slate-200 text-slate-400 font-bold flex items-center justify-center text-xs hover:bg-slate-50 transition-all";
+                b.className = "aspect-square rounded-lg border border-slate-200 text-slate-400 font-bold flex items-center justify-center text-xs hover:bg-slate-50 transition-all";
                 b.onclick = () => jumpTo(i);
                 grid.appendChild(b);
             });
@@ -304,7 +316,7 @@
             item.opt.forEach((o, i) => {
                 const isSelected = responses[currentIdx] === i;
                 const b = document.createElement('button');
-                b.className = `w-full text-left p-5 rounded-[1.25rem] border-2 transition-all flex items-center gap-4 ${isSelected ? 'border-slate-800 bg-slate-50' : 'border-slate-100 hover:border-slate-200'}`;
+                b.className = `w-full text-left p-5 rounded-2xl border-2 transition-all flex items-center gap-4 ${isSelected ? 'border-slate-800 bg-slate-50 shadow-md' : 'border-slate-100 hover:border-slate-200'}`;
                 b.onclick = () => selectOption(i);
                 b.innerHTML = `
                     <div class="w-10 h-10 rounded-full border-2 flex shrink-0 items-center justify-center font-bold ${isSelected ? 'bg-slate-800 border-slate-800 text-white' : 'border-slate-200 text-slate-400'}">
@@ -317,7 +329,7 @@
 
             updateNavUI();
             document.getElementById('btn-prev').disabled = currentIdx === 0;
-            document.getElementById('btn-next').innerText = currentIdx === 49 ? "Selesai" : "Lanjutkan &rarr;";
+            document.getElementById('btn-next').innerText = currentIdx === 49 ? "Selesai" : "Lanjutkan →";
         }
 
         function selectOption(idx) {
@@ -337,6 +349,7 @@
         function jumpTo(idx) {
             currentIdx = idx;
             renderQuestion();
+            // On mobile, keep sidebar if user jump, but if screen small we hide it
             if(window.innerWidth < 768) toggleSidebar();
         }
 
@@ -348,18 +361,18 @@
                 const isCurrent = i === currentIdx;
                 
                 if(isCurrent) {
-                    btn.className = "aspect-square rounded-xl border-2 border-slate-800 bg-slate-800 text-white font-bold flex items-center justify-center text-xs scale-110 z-10 shadow-xl transition-all";
+                    btn.className = "aspect-square rounded-lg border-2 border-slate-800 bg-slate-800 text-white font-bold flex items-center justify-center text-xs scale-110 z-10 shadow-lg transition-all";
                 } else if(isAnswered) {
                     btn.className = "aspect-square rounded-xl border border-emerald-500 bg-emerald-50 text-emerald-600 font-bold flex items-center justify-center text-xs transition-all";
                 } else {
-                    btn.className = "aspect-square rounded-xl border border-slate-200 text-slate-300 font-bold flex items-center justify-center text-xs transition-all";
+                    btn.className = "aspect-square rounded-lg border border-slate-200 text-slate-300 font-bold flex items-center justify-center text-xs transition-all";
                 }
             });
         }
 
         function toggleSidebar() {
             const sb = document.getElementById('sidebar');
-            sb.classList.toggle('-translate-x-full');
+            sb.classList.toggle('hidden-sidebar');
         }
 
         function openConfirmModal() {
@@ -386,8 +399,8 @@
                 if(responses[i] !== undefined && labels[responses[i]] === item.ans) correct++;
             });
 
-            const answered = Object.keys(responses).length;
-            const percent = Math.round((answered / 50) * 100);
+            const answeredCount = Object.keys(responses).length;
+            const percent = Math.round((answeredCount / 50) * 100);
             
             document.getElementById('res-percent').innerText = `${percent}%`;
             document.getElementById('res-score').innerText = `${correct} / 50`;
@@ -420,7 +433,7 @@
 
                     card.innerHTML = `
                         <div class="flex justify-between items-center mb-6">
-                            <span class="text-[10px] font-bold text-slate-300 uppercase tracking-widest">Analisis Soal #${i+1}</span>
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Analisis Soal #${i+1}</span>
                             <span class="px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-tighter ${isCorrect ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}">
                                 ${ansIdx === undefined ? 'Terlewat' : (isCorrect ? 'Tepat' : 'Kurang Tepat')}
                             </span>
@@ -450,7 +463,7 @@
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
             doc.setFontSize(16);
-            doc.text("Latihan Analogi & Padanan Kata", 105, 20, { align: 'center' });
+            doc.text("Hasil Latihan Analogi & Padanan Kata", 105, 20, { align: 'center' });
             
             const data = quizData.map((item, i) => [
                 i+1,
@@ -468,7 +481,7 @@
                 headStyles: { fillColor: [30, 41, 59] }
             });
 
-            doc.save("Analogi_Latihan_Matematika.pdf");
+            doc.save("Latihan_Analogi_Padanan_Kata.pdf");
         }
     </script>
 </body>
